@@ -1,6 +1,3 @@
-name: List files
-run: ls -R
-
 name: Daily Stock Alert
 
 on:
