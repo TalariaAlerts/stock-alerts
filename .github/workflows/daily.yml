@@ -31,4 +31,4 @@ jobs:
           echo '${{ secrets.GOOGLE_TOKEN }}' > token.json
 
       - name: Run script
-        run: python alert.py
+        run: python stock-alerts/alert.py
