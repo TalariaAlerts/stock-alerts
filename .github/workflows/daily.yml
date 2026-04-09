@@ -26,5 +26,9 @@ jobs:
         run: |
           echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials.json
 
+      - name: Create token file
+        run: |
+          echo '${{ secrets.GOOGLE_TOKEN }}' > token.json
+
       - name: Run script
         run: python alert.py
