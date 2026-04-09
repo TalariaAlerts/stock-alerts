@@ -1,0 +1,30 @@
+name: Daily Stock Alert
+
+on:
+  schedule:
+    - cron: '0 23 * * *'  # 9am Melbourne = 11pm UTC (adjust if needed)
+  workflow_dispatch:  # allows manual run
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install yfinance pandas requests beautifulsoup4 google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+
+      - name: Create credentials file
+        run: |
+          echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials.json
+
+      - name: Run script
+        run: python alert.py
