@@ -30,5 +30,10 @@ jobs:
         run: |
           echo '${{ secrets.GOOGLE_TOKEN }}' > token.json
 
+      - name: Debug location
+        run: |
+          pwd
+          ls -la
+          
       - name: Run script
         run: python alert.py
