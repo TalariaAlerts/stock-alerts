@@ -202,22 +202,15 @@ def send_email(body):
 
     # If no valid credentials → authenticate
     if not creds or not creds.valid:
-        flow = InstalledAppFlow.from_client_secrets_file(
-            'credentials.json',
-            SCOPES,
-            redirect_uri='urn:ietf:wg:oauth:2.0:oob'
-        )
+        from google.oauth2.credentials import Credentials
+        import os
 
-        auth_url, _ = flow.authorization_url(prompt='consent')
+        SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
-        print("Go to this URL:")
-        print(auth_url)
+        if not os.path.exists('token.json'):
+            raise Exception("token.json not found — run locally first to authenticate")
 
-        code = input("Enter the code here: ")
-
-        flow.fetch_token(code=code)
-
-        creds = flow.credentials
+        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
 
         # Save token
         with open('token.json', 'w') as token:
