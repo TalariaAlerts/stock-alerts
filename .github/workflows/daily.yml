@@ -36,4 +36,4 @@ jobs:
           ls -la
           
       - name: Run script
-        run: python ./alert.py
+        run: python alert.py
