@@ -6,6 +6,8 @@ from email.mime.text import MIMEText
 import base64
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from email.utils import parsedate_to_datetime
+from datetime import datetime, timedelta, timezone
 
 # ------------------------
 # CONFIG
@@ -78,23 +80,36 @@ def get_news(company, max_items=3):
     url = f"https://news.google.com/rss/search?q={company}"
     headlines = []
 
+    cutoff = datetime.now(timezone.utc) - timedelta(days=5)
+
     try:
-        r = requests.get(url)
+        r = requests.get(url, timeout=20)
         root = ET.fromstring(r.content)
 
         for item in root.findall(".//item"):
-            title = item.find("title").text
-            link = item.find("link").text
-            pub_date = item.find("pubDate").text
+            title = item.find("title").text if item.find("title") is not None else ""
+            link = item.find("link").text if item.find("link") is not None else ""
+            pub_date_text = item.find("pubDate").text if item.find("pubDate") is not None else ""
+
+            if not title or not link or not pub_date_text:
+                continue
+
+            pub_date = parsedate_to_datetime(pub_date_text)
+            if pub_date.tzinfo is None:
+                pub_date = pub_date.replace(tzinfo=timezone.utc)
+
+            if pub_date < cutoff:
+                continue
 
             if any(x in title.lower() for x in ["stock", "price", "share"]):
                 continue
 
-            headlines.append((title, link, pub_date))
+            date_str = pub_date.strftime("%d %b %Y")
+            headlines.append((title, link, date_str))
 
             if len(headlines) >= max_items:
                 break
-    except:
+    except Exception:
         pass
 
     return headlines
@@ -102,22 +117,41 @@ def get_news(company, max_items=3):
 # ------------------------
 # PRESS RELEASES
 # ------------------------
-def get_press_releases(rss_url, max_items=2):
+def get_press_releases(rss_url):
     if not rss_url:
         return []
 
     items = []
+    cutoff = datetime.now(timezone.utc) - timedelta(days=5)
 
     try:
-        r = requests.get(rss_url)
+        r = requests.get(rss_url, timeout=20)
         root = ET.fromstring(r.content)
 
-        for item in root.findall(".//item")[:max_items]:
-            title = item.find("title").text
-            link = item.find("link").text
-            pub_date = item.find("pubDate").text
-            items.append((title, link, pub_date))
-    except:
+        for item in root.findall(".//item"):
+            title = item.find("title").text if item.find("title") is not None else ""
+            link = item.find("link").text if item.find("link") is not None else ""
+            pub_date_text = item.find("pubDate").text if item.find("pubDate") is not None else ""
+
+            if not title or not link:
+                continue
+
+            if pub_date_text:
+                pub_date = parsedate_to_datetime(pub_date_text)
+                if pub_date.tzinfo is None:
+                    pub_date = pub_date.replace(tzinfo=timezone.utc)
+
+                # Filter: only last 5 days
+                if pub_date < cutoff:
+                    continue
+
+                date_str = pub_date.strftime("%d %b %Y")
+            else:
+                date_str = "No date"
+
+            items.append((title, link, date_str))
+
+    except Exception:
         pass
 
     return items
