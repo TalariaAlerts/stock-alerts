@@ -160,7 +160,7 @@ def get_press_releases(rss_url):
 # BUILD EMAIL
 # ------------------------
 def build_email():
-    today = datetime.date.today().strftime("%d %B %Y")
+    today = datetime.now().strftime("%d %B %Y")
     body = f"""
     <div style="font-family: 'Lora', Georgia, 'Times New Roman', serif; font-size: 10.5pt; line-height: 1.4;">
     <h3>DAILY STOCK UPDATE – {today}</h3>
