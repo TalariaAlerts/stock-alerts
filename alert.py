@@ -219,52 +219,21 @@ def build_email():
 # SEND EMAIL
 # ------------------------
 def send_email(body):
-    from google.oauth2.credentials import Credentials
-    from google_auth_oauthlib.flow import InstalledAppFlow
-    from googleapiclient.discovery import build
+    import smtplib
     from email.mime.text import MIMEText
-    import base64
     import os
 
-    SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+    EMAIL_USER = os.environ.get("EMAIL_USER")
+    EMAIL_PASS = os.environ.get("EMAIL_PASS")
 
-    creds = None
+    msg = MIMEText(body, "html")
+    msg["Subject"] = "Daily Stock Update"
+    msg["From"] = EMAIL_USER
+    msg["To"] = RECIPIENT
 
-    # Load existing token
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-
-    # If no valid credentials → authenticate
-    if not creds or not creds.valid:
-        from google.oauth2.credentials import Credentials
-        import os
-
-        SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-
-        if not os.path.exists('token.json'):
-            raise Exception("token.json not found — run locally first to authenticate")
-
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-
-        # Save token
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-
-    # Build Gmail service
-    service = build('gmail', 'v1', credentials=creds)
-
-    # Create email
-    message = MIMEText(body, "html")
-    message['to'] = RECIPIENT
-    message['subject'] = "Daily Stock Update"
-
-    raw = base64.urlsafe_b64encode(message.as_bytes()).decode()
-
-    # Send
-    service.users().messages().send(
-        userId="me",
-        body={"raw": raw}
-    ).execute()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(EMAIL_USER, EMAIL_PASS)
+        server.send_message(msg)
 
 # ------------------------
 # RUN
