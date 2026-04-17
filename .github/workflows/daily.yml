@@ -22,18 +22,13 @@ jobs:
         run: |
           pip install yfinance pandas requests beautifulsoup4 google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
 
-      - name: Create credentials file
-        run: |
-          echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials.json
-
-      - name: Create token file
-        run: |
-          echo '${{ secrets.GOOGLE_TOKEN }}' > token.json
-
       - name: Debug location
         run: |
           pwd
           ls -la
           
       - name: Run script
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
         run: python ./alert.py
